@@ -18,41 +18,27 @@
  */
 package org.bpmc;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.apache.log4j.Logger;
 import org.openbravo.base.exception.OBException;
-import org.openbravo.base.provider.OBProvider;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.scheduling.ProcessBundle;
 import org.openbravo.service.db.DalBaseProcess;
 
-public class ApplyHomeVisit extends DalBaseProcess {
-  private static final Logger log = Logger.getLogger(ApplyHomeVisit.class);
+public class CheckAppeal extends DalBaseProcess {
+  private static final Logger log = Logger.getLogger(CheckAppeal.class);
 
   @Override
   public void doExecute(ProcessBundle bundle) throws Exception {
     try {
-      final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-      dateFormat.setLenient(true);
       Application application = OBDal.getInstance().get(Application.class,
           bundle.getParams().get("Bpmc_Application_ID"));
-      HomeVisit homeVisit = OBProvider.getInstance().get(HomeVisit.class);
-      homeVisit.setApplication(application);
-      homeVisit.setDescription((String) bundle.getParams().get("description"));
-      homeVisit.setInformation((String) bundle.getParams().get("information"));
-      homeVisit.setAdvicedate(new Date());
-      homeVisit.setVisitdate(dateFormat.parse((String) bundle.getParams().get("visitdate")));
-      final String advice = (String) bundle.getParams().get("visitadvice");
-      homeVisit.setAdvice(advice);
-      if (advice.equals("BPMC_MedicalAdviceNeeded")) {
-        application.setApplicationStatus("BPMC_MedicalAdvice");
-      } else if (advice.equals("BPMC_NoMedicalAdviceNeeded")) {
-        application.setApplicationStatus("BPMC_Decide");
+      final String checkAppeal = (String) bundle.getParams().get("checkappeal");
+      if (checkAppeal.equals("BPMC_NoAppeal")) {
+        application.setApplicationStatus("BPMC_NoAppeal");
+      } else {
+        application.setApplicationStatus("BPMC_Appeal");
       }
-      OBDal.getInstance().save(homeVisit);
       final OBError msg = new OBError();
       msg.setType("Success");
       msg.setTitle("@Success@");
