@@ -53,20 +53,25 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="PAYMENTSTATUS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EXECUTEPAYMENT" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="BPMC_APPLICATION" name="BPMC_APPLICATION_PY">
+        <reference local="BPMC_APPLICATION_ID" foreign="BPMC_APPLICATION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="BPMC_INVOICE" name="BPMC_INVOICE_PY">
+        <reference local="BPMC_INVOICE_ID" foreign="BPMC_INVOICE_ID"/>
+      </foreign-key>
       <foreign-key foreignTable="AD_CLIENT" name="BPMC_PAYMENT_AD_CLIENT">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
       </foreign-key>
       <foreign-key foreignTable="AD_ORG" name="BPMC_PAYMENT_AD_ORG">
         <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
-      </foreign-key>
-      <foreign-key foreignTable="C_BPARTNER" name="BPMC_PAYMENT_BP">
-        <reference local="C_BPARTNER_ID" foreign="C_BPARTNER_ID"/>
-      </foreign-key>
-      <foreign-key foreignTable="BPMC_INVOICE" name="BPMC_INVOICE_PY">
-        <reference local="BPMC_INVOICE_ID" foreign="BPMC_INVOICE_ID"/>
-      </foreign-key>
-      <foreign-key foreignTable="BPMC_APPLICATION" name="BPMC_APPLICATION_PY">
-        <reference local="BPMC_APPLICATION_ID" foreign="BPMC_APPLICATION_ID"/>
       </foreign-key>
       <check name="BPMC_PAYMENT_ISACTIVE_CHECK"><![CDATA[ISACTIVE IN ('Y', 'N')]]></check>
     </table>
