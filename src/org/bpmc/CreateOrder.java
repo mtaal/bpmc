@@ -18,11 +18,13 @@
  */
 package org.bpmc;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.base.provider.OBProvider;
 import org.openbravo.client.application.process.BaseProcessActionHandler;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -35,7 +37,24 @@ public class CreateOrder extends BaseProcessActionHandler {
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
     try {
       final JSONObject jsonData = new JSONObject(data);
-      System.err.println(data);
+      final Application application = OBDal.getInstance().get(Application.class,
+          jsonData.getString("Bpmc_Application_ID"));
+      final TenderOffer tenderOffer = OBDal.getInstance().get(TenderOffer.class,
+          jsonData.getString("inpbpmcTenderOfferId"));
+      final BPMCOrder order = OBProvider.getInstance().get(BPMCOrder.class);
+      order.setBpmcTenderOffer(tenderOffer);
+      order.setApplication(application);
+      order.setBusinessPartner(tenderOffer.getBusinessPartner());
+      order.setOrderdate(new Date());
+      order.setDescription(application.getDescription());
+      order.setMaxAmount((long) (tenderOffer.getOfferamount() * 1.1));
+      order.setOrderstart(new Date());
+      order.setOrderend(new Date());
+      order.setOrderstatus("Created");
+      String systemTimeMillis = "" + System.currentTimeMillis();
+      order
+          .setOrdernumber("WMO" + ("" + systemTimeMillis).substring(systemTimeMillis.length() - 6));
+      OBDal.getInstance().save(order);
       return getSuccessMessage("Success");
     } catch (Exception e) {
       OBDal.getInstance().rollbackAndClose();

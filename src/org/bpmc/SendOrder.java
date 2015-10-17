@@ -35,7 +35,14 @@ public class SendOrder extends BaseProcessActionHandler {
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
     try {
       final JSONObject jsonData = new JSONObject(data);
-      System.err.println(data);
+      final Application application = OBDal.getInstance().get(Application.class,
+          jsonData.getString("Bpmc_Application_ID"));
+      for (BPMCOrder order : application.getBPMCOrderList()) {
+        if (order.getOrderstatus().equals("Created")) {
+          order.setOrderstatus("Sent Out");
+          break;
+        }
+      }
       return getSuccessMessage("Success");
     } catch (Exception e) {
       OBDal.getInstance().rollbackAndClose();

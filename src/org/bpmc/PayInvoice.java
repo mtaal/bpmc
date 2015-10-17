@@ -18,11 +18,13 @@
  */
 package org.bpmc;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.base.provider.OBProvider;
 import org.openbravo.client.application.process.BaseProcessActionHandler;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -35,14 +37,25 @@ public class PayInvoice extends BaseProcessActionHandler {
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
     try {
       final JSONObject jsonData = new JSONObject(data);
-      final String tenderId = jsonData.getString("Bpmc_Tender_ID");
-      Tender tender = OBDal.getInstance().get(Tender.class, tenderId);
-      tender.setTenderstatus("Send Out");
+      System.err.println(jsonData);
+      final BPMCInvoice invoice = OBDal.getInstance().get(BPMCInvoice.class,
+          jsonData.getString("inpbpmcInvoiceId"));
+      invoice.setInvoicepaid(new Date());
+      invoice.setInvoiceStatus("Pay");
+      invoice.getBpmcOrder().setOrderstatus("Invoiced");
+
+      BPMC_Payment payment = OBProvider.getInstance().get(BPMC_Payment.class);
+      payment.setApplication(invoice.getBpmcOrder().getApplication());
+      payment.setDescription("INV - " + invoice.getInvoicenumber());
+      payment.setInvoice(invoice);
+      payment.setPaymentStatus("Approved");
+      payment.setAmount(invoice.getAmount());
+      OBDal.getInstance().save(payment);
+
       // Success Message
       return getSuccessMessage("Success");
     } catch (Exception e) {
       OBDal.getInstance().rollbackAndClose();
-      log.error("Exception creating multiple transactions from payments", e);
 
       try {
         Throwable ex = DbUtility.getUnderlyingSQLException(e);

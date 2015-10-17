@@ -18,12 +18,14 @@
  */
 package org.bpmc;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.client.application.process.BaseProcessActionHandler;
+import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.service.db.DbUtility;
@@ -33,23 +35,29 @@ public class ExecutePayment extends BaseProcessActionHandler {
 
   @Override
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
+    OBContext.setAdminMode(false);
     try {
       final JSONObject jsonData = new JSONObject(data);
-      final String tenderId = jsonData.getString("Bpmc_Tender_ID");
-      Tender tender = OBDal.getInstance().get(Tender.class, tenderId);
-      tender.setTenderstatus("Send Out");
-      // Success Message
+      final BPMC_Payment payment = OBDal.getInstance().get(BPMC_Payment.class,
+          jsonData.getString("inpbpmcPaymentId"));
+      payment.setPaymentDate(new Date());
+      payment.setPaymentStatus("Executed");
+      if (payment.getInvoice() != null) {
+        payment.getInvoice().setInvoiceStatus("Paid");
+        payment.getInvoice().setInvoicepaid(new Date());
+      }
+      OBDal.getInstance().flush();
       return getSuccessMessage("Success");
     } catch (Exception e) {
       OBDal.getInstance().rollbackAndClose();
-      log.error("Exception creating multiple transactions from payments", e);
-
       try {
         Throwable ex = DbUtility.getUnderlyingSQLException(e);
         String message = OBMessageUtils.translateError(ex.getMessage()).getMessage();
         return getErrorMessage(message);
       } catch (Exception ignore) {
       }
+    } finally {
+      OBContext.restorePreviousMode();
     }
 
     return new JSONObject();

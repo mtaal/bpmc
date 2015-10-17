@@ -35,15 +35,13 @@ public class ReturnInvoice extends BaseProcessActionHandler {
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
     try {
       final JSONObject jsonData = new JSONObject(data);
-      final String tenderId = jsonData.getString("Bpmc_Tender_ID");
-      Tender tender = OBDal.getInstance().get(Tender.class, tenderId);
-      tender.setTenderstatus("Send Out");
+      final BPMCInvoice invoice = OBDal.getInstance().get(BPMCInvoice.class,
+          jsonData.getString("inpbpmcInvoiceId"));
+      invoice.setInvoiceStatus("Rejected");
       // Success Message
       return getSuccessMessage("Success");
     } catch (Exception e) {
       OBDal.getInstance().rollbackAndClose();
-      log.error("Exception creating multiple transactions from payments", e);
-
       try {
         Throwable ex = DbUtility.getUnderlyingSQLException(e);
         String message = OBMessageUtils.translateError(ex.getMessage()).getMessage();
