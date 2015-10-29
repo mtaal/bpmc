@@ -37,7 +37,6 @@ public class PayInvoice extends BaseProcessActionHandler {
   protected JSONObject doExecute(Map<String, Object> parameters, String data) {
     try {
       final JSONObject jsonData = new JSONObject(data);
-      System.err.println(jsonData);
       final BPMCInvoice invoice = OBDal.getInstance().get(BPMCInvoice.class,
           jsonData.getString("inpbpmcInvoiceId"));
       invoice.setInvoicepaid(new Date());
