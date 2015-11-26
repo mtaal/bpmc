@@ -37,10 +37,14 @@ public class SendOrder extends BaseProcessActionHandler {
       final JSONObject jsonData = new JSONObject(data);
       final Application application = OBDal.getInstance().get(Application.class,
           jsonData.getString("Bpmc_Application_ID"));
+      String orderId = jsonData.has("inpbpmcOrderId") ? jsonData.getString("inpbpmcOrderId") : null;
       for (BPMCOrder order : application.getBPMCOrderList()) {
+        if (orderId != null && !orderId.equals(order.getId())) {
+          continue;
+        }
         if (order.getOrderstatus().equals("Created")) {
           order.setOrderstatus("Sent Out");
-          break;
+          continue;
         }
       }
       return getSuccessMessage("Success");

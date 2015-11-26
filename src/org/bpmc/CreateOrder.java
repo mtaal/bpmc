@@ -39,15 +39,22 @@ public class CreateOrder extends BaseProcessActionHandler {
       final JSONObject jsonData = new JSONObject(data);
       final Application application = OBDal.getInstance().get(Application.class,
           jsonData.getString("Bpmc_Application_ID"));
-      final TenderOffer tenderOffer = OBDal.getInstance().get(TenderOffer.class,
-          jsonData.getString("inpbpmcTenderOfferId"));
       final BPMCOrder order = OBProvider.getInstance().get(BPMCOrder.class);
-      order.setBpmcTenderOffer(tenderOffer);
+      if (jsonData.has("inpbpmcTenderOfferId")) {
+        final TenderOffer tenderOffer = OBDal.getInstance().get(TenderOffer.class,
+            jsonData.getString("inpbpmcTenderOfferId"));
+        order.setBpmcTenderOffer(tenderOffer);
+        order.setBusinessPartner(tenderOffer.getBusinessPartner());
+        order.setMaxAmount((long) (tenderOffer.getOfferamount() * 1.1));
+      } else if (jsonData.has("inpbpmcSupplierSelectionId")) {
+        final SupplierSelection selection = OBDal.getInstance().get(SupplierSelection.class,
+            jsonData.getString("inpbpmcSupplierSelectionId"));
+        order.setBusinessPartner(selection.getBusinessPartner());
+        selection.setOrdercreated(true);
+      }
       order.setApplication(application);
-      order.setBusinessPartner(tenderOffer.getBusinessPartner());
       order.setOrderdate(new Date());
       order.setDescription(application.getDescription());
-      order.setMaxAmount((long) (tenderOffer.getOfferamount() * 1.1));
       order.setOrderstart(new Date());
       order.setOrderend(new Date());
       order.setOrderstatus("Created");
